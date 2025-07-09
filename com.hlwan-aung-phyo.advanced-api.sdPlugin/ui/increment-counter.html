@@ -129,24 +129,7 @@
           }
         }
       });
-      console.log("Current value-image map:", map);
       return map;
-    }
-
-    function populateFromSettings(settings) {
-      // Clear existing mappings
-      container.innerHTML = "";
-      mappingCounter = 0;
-      
-      const mappings = settings.valueImageMap || {};
-      for (const key in mappings) {
-        createMappingRow(key, mappings[key]);
-      }
-      
-      // If no mappings exist, add one empty row
-      if (Object.keys(mappings).length === 0) {
-        createMappingRow();
-      }
     }
 
     function saveSettings() {
@@ -162,8 +145,6 @@
       });
 
       payload.valueImageMap = map;
-
-      console.log("Saving settings:", payload);
 
       if (window.$SD) {
         $SD.setSettings($SD.uuid, payload);
@@ -190,7 +171,6 @@
               "off": "path/to/off.png"
             }
           };
-          populateFromSettings(mockSettings);
         }, 200);
       }
     });
