@@ -1,76 +1,89 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head lang="en">
-  <title>API Value Image Mapping</title>
-  <meta charset="utf-8" />
-  <script src="https://sdpi-components.dev/releases/v4/sdpi-components.js"></script>
-  <style>
-    .mapping-entry {
-      margin-top: 30px;
-      margin-bottom: 16px;
-      border-bottom: 1px solid var(--sdpi-color-border);
-    }
-    
-    .mapping-entry:last-child {
-      border-bottom: none;
-    }
-    
-    .mapping-value-row {
-      display: flex;
-      gap: 1px;
-      align-items: flex-end;
-      margin-bottom: 8px;
-    }
-    
-    .mapping-value {
-      flex: 1;
-    }
-    
-    .mapping-remove {
-      display: flex;
-    }
-    
-    .mapping-image-row {
-      width: 100%;
-    }
-  </style>
-</head>
+  <head lang="en">
+    <title>API Value Image Mapping</title>
+    <meta charset="utf-8" />
+    <script src="https://sdpi-components.dev/releases/v4/sdpi-components.js"></script>
+    <style>
+      .mapping-entry {
+        margin-top: 30px;
+        margin-bottom: 16px;
+        border-bottom: 1px solid var(--sdpi-color-border);
+      }
 
-<body>
-  <sdpi-item label="API URL">
-    <sdpi-textfield setting="url" value="" required></sdpi-textfield>
-  </sdpi-item>
+      .mapping-entry:last-child {
+        border-bottom: none;
+      }
 
-  <sdpi-item label="Method">
-    <sdpi-select setting="method">
-      <option value="GET" selected>GET</option>
-      <option value="POST">POST</option>
-    </sdpi-select>
-  </sdpi-item>
+      .mapping-value-row {
+        display: flex;
+        gap: 1px;
+        align-items: flex-end;
+        margin-bottom: 8px;
+      }
 
-  <sdpi-item label="JSONPath">
-    <sdpi-textfield setting="jsonpath" value="$.led_state"></sdpi-textfield>
-  </sdpi-item>
+      .mapping-value {
+        flex: 1;
+      }
 
+      .mapping-remove {
+        display: flex;
+      }
 
-  <div id="mappingContainer"></div>
+      .mapping-image-row {
+        width: 100%;
+      }
+    </style>
+  </head>
 
-  <sdpi-item>
-    <sdpi-button id="addMapping">+ Add Mapping</sdpi-button>
-  </sdpi-item>
+  <body>
+    <sdpi-item label="API URL">
+      <sdpi-textfield setting="url" value="" required></sdpi-textfield>
+    </sdpi-item>
 
-  <script>
-    const container = document.getElementById("mappingContainer");
-    let mappingCounter = 0;
+    <sdpi-item label="Method">
+      <sdpi-select setting="method">
+        <option value="GET" selected>GET</option>
+        <option value="POST">POST</option>
+      </sdpi-select>
+    </sdpi-item>
 
-    function createMappingRow(value = "", image = "") {
-      const mappingId = `mapping_${mappingCounter++}`;
-      
-      const row = document.createElement("div");
-      row.className = "mapping-entry";
-      row.dataset.mappingId = mappingId;
-      
-      row.innerHTML = `
+    <sdpi-item label="JSONPath">
+      <sdpi-textfield setting="jsonpath" value="$.led_state"></sdpi-textfield>
+    </sdpi-item>
+
+    <div id="mappingContainer">
+      <sdpi-item label="Value">
+        <sdpi-textfield
+          class="value-field"
+          placeholder="e.g. on, off"
+          setting="value"
+        ></sdpi-textfield>
+      </sdpi-item>
+
+      <div class="mapping-image-row">
+        <sdpi-item label="Image">
+          <sdpi-file
+            class="image-field"
+            accept="image/png,image/jpeg,image/gif"
+            setting="matchedImage"
+          ></sdpi-file>
+        </sdpi-item>
+      </div>
+    </div>
+    <!--
+   <script>
+      const container = document.getElementById("mappingContainer");
+      let mappingCounter = 0;
+
+      function createMappingRow(value = "", image = "") {
+        const mappingId = `mapping_${mappingCounter++}`;
+
+        const row = document.createElement("div");
+        row.className = "mapping-entry";
+        row.dataset.mappingId = mappingId;
+
+        row.innerHTML = `
             <sdpi-item label="Value">
               <sdpi-textfield class="value-field" placeholder="e.g. on, off" value="${value}"></sdpi-textfield>
             </sdpi-item>
@@ -86,119 +99,121 @@
             <sdpi-button class="remove-btn" variant="secondary">×</sdpi-button>
           </sdpi-item>
       `;
-      
-      // Add event listeners after the SDPI components are initialized
-      setTimeout(() => {
-        const removeBtn = row.querySelector(".remove-btn");
-        if (removeBtn) {
-          removeBtn.addEventListener("click", () => {
-            row.remove();
-            saveSettings();
-          });
-        }
-        
-        const valueField = row.querySelector(".value-field");
-        const imageField = row.querySelector(".image-field");
-        
-        if (valueField) {
-          valueField.addEventListener("change", saveSettings);
-        }
-        if (imageField) {
-          imageField.addEventListener("change", saveSettings);
-        }
-      }, 100);
-      
-      container.appendChild(row);
-      return row;
-    }
 
-    function getValueImageMap() {
-      const rows = container.querySelectorAll(".mapping-entry");
-      const map = {};
-      
-      rows.forEach(row => {
-        const valueField = row.querySelector(".value-field");
-        const imageField = row.querySelector(".image-field");
-        
-        if (valueField && imageField) {
-          const key = valueField.value?.trim();
-          const val = imageField.value?.trim();
-          
-          if (key && val) {
-            map[key] = val;
-          }
-        }
-      });
-      return map;
-    }
-
-    function saveSettings() {
-      const map = getValueImageMap();
-      const sdpiInputs = document.querySelectorAll("[setting]");
-      const payload = {};
-
-      sdpiInputs.forEach(el => {
-        const setting = el.getAttribute("setting");
-        if (setting) {
-          payload[setting] = el.value || el.getAttribute("value");
-        }
-      });
-
-      payload.valueImageMap = map;
-
-      if (window.$SD) {
-        $SD.setSettings($SD.uuid, payload);
-      }
-    }
-
-    // Add mapping button event
-    document.getElementById("addMapping").addEventListener("click", () => {
-      createMappingRow();
-    });
-
-    // Initialize when DOM is ready
-    document.addEventListener("DOMContentLoaded", () => {
-      // Mock settings for testing if $SD is not available
-      if (!window.$SD) {
-        console.log("SDPI not available, using mock data");
+        // Add event listeners after the SDPI components are initialized
         setTimeout(() => {
-          const mockSettings = {
-            url: "http://example.com/api",
-            method: "GET",
-            jsonpath: "$.led_state",
-            valueImageMap: {
-              "on": "path/to/on.png",
-              "off": "path/to/off.png"
-            }
-          };
-        }, 200);
-      }
-    });
+          const removeBtn = row.querySelector(".remove-btn");
+          if (removeBtn) {
+            removeBtn.addEventListener("click", () => {
+              row.remove();
+              saveSettings();
+            });
+          }
 
-    // SDPI event handlers
-    if (window.$SD) {
-      $SD.on('connected', (jsn) => {
-        const settings = jsn?.settings ?? {};
-        
-        // Set component values from SDPI if any
-        document.querySelectorAll("[setting]").forEach(el => {
-          const setting = el.getAttribute("setting");
-          if (setting && settings[setting] !== undefined) {
-            el.value = settings[setting];
+          const valueField = row.querySelector(".value-field");
+          const imageField = row.querySelector(".image-field");
+
+          if (valueField) {
+            valueField.addEventListener("change", saveSettings);
+          }
+          if (imageField) {
+            imageField.addEventListener("change", saveSettings);
+          }
+        }, 100);
+
+        container.appendChild(row);
+        return row;
+      }
+
+      function getValueImageMap() {
+        const rows = container.querySelectorAll(".mapping-entry");
+        const map = {};
+
+        rows.forEach((row) => {
+          const valueField = row.querySelector(".value-field");
+          const imageField = row.querySelector(".image-field");
+
+          if (valueField && imageField) {
+            const key = valueField.value?.trim();
+            const val = imageField.value?.trim();
+
+            if (key && val) {
+              map[key] = val;
+            }
           }
         });
-        
-        // Populate mappings after a short delay to ensure components are ready
-        setTimeout(() => {
-          populateFromSettings(settings);
-        }, 100);
+        return map;
+      }
+
+      function saveSettings() {
+        const map = getValueImageMap();
+        const sdpiInputs = document.querySelectorAll("[setting]");
+        const payload = {};
+
+        sdpiInputs.forEach((el) => {
+          const setting = el.getAttribute("setting");
+          if (setting) {
+            payload[setting] = el.value || el.getAttribute("value");
+          }
+        });
+
+        payload.valueImageMap = map;
+
+        if (window.$SD) {
+          $SD.setSettings($SD.uuid, payload);
+        }
+      }
+
+      // Add mapping button event
+      document.getElementById("addMapping").addEventListener("click", () => {
+        createMappingRow();
       });
 
-      // Save when inputs change
-      document.querySelectorAll("[setting]").forEach(el => {
-        el.addEventListener("change", saveSettings);
+      // Initialize when DOM is ready
+      document.addEventListener("DOMContentLoaded", () => {
+        // Mock settings for testing if $SD is not available
+        if (!window.$SD) {
+          console.log("SDPI not available, using mock data");
+          setTimeout(() => {
+            const mockSettings = {
+              url: "http://example.com/api",
+              method: "GET",
+              jsonpath: "$.led_state",
+              valueImageMap: {
+                on: "path/to/on.png",
+                off: "path/to/off.png",
+              },
+            };
+          }, 200);
+        }
       });
-    }
-  </script>
-</body>
+
+      // SDPI event handlers
+      if (window.$SD) {
+        $SD.on("connected", (jsn) => {
+          const settings = jsn?.settings ?? {};
+
+          // Set component values from SDPI if any
+          document.querySelectorAll("[setting]").forEach((el) => {
+            const setting = el.getAttribute("setting");
+            if (setting && settings[setting] !== undefined) {
+              el.value = settings[setting];
+            }
+          });
+
+          // Populate mappings after a short delay to ensure components are ready
+          setTimeout(() => {
+            populateFromSettings(settings);
+          }, 100);
+        });
+
+        // Save when inputs change
+        document.querySelectorAll("[setting]").forEach((el) => {
+          el.addEventListener("change", saveSettings);
+        });
+      }
+    </script>  
+
+-->
+  </body>
 </html>

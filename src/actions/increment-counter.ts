@@ -29,6 +29,8 @@ export class IncrementCounter extends SingletonAction<APISetting> {
   ): Promise<void> | void {
     const { settings } = ev.payload;
     // Update the title with the current count from the settings.
+	ev.action.setImage(settings.matchedImage ?? "");
+	// ev.action.setTitle(settings.value ?? "Hello, World!");
     return ev.action.setTitle(settings.jsonpath ?? "Hello, World!");
     // return ev.action.setTitle(`${settings.count ?? 0}`);
     // return ev.action.setTitle(`Hello, World!`);
@@ -89,4 +91,6 @@ type APISetting = {
   method: string;
   url: string;
   jsonpath: string;
+  value: string;
+  matchedImage: string;
 };
